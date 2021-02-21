@@ -17,11 +17,13 @@ https://www.dropbox.com/sh/f2a6pqliwj585io/AACClY8XKdAF0APrqSLfLlMZa?dl=0
 ## Features + Sample Questions
 
 **Getting a list of airing anime on a specific day or week**
+* Alexa, ask Airing Anime `what's airing today.`
+* Alexa, ask Airing Anime `what's airing on Sunday.`
+* Alexa, ask Airing Anime `what's airing this week.`
+* Alexa, ask Airing Anime `what's airing on February 21st, 2021.`
 
-`Alexa, ask Airing Anime what's airing today.`
-
-`Alexa, ask Airing Anime what's airing on Sunday.`
-
-`Alexa, ask Airing Anime what's airing this week.`
-
-
+**Getting how many episodes a specific anime has**
+* Alexa, ask Airing Anime `how many episodes did Monster have.`
+* Alexa, ask Airing Anime `episodes in Monster.`
+* Alexa, ask Airing Anime `what's airing this week.`
+* Alexa, ask Airing Anime `what's airing on February 21st, 2021.`
