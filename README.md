@@ -10,9 +10,12 @@ An Alexa Skill for reminders about currently airing anime on your https://anilis
 *For the DALI Lab API challenge (for 21S)*
 
 ## Demos
+Video Demos:
 https://www.dropbox.com/sh/f2a6pqliwj585io/AACClY8XKdAF0APrqSLfLlMZa?dl=0
+Skill Beta:
+If you woud like beta access to this Alexa skill on your own Alexa device, follow this link: [Skill Beta Link](https://skills-store.amazon.com/deeplink/tvt/8952e85ec2acbefed6f2cbfc296f4f30b42a8ca600162eed97c0d74ddd45edbcfacfb43fc0b9a83aa767a72ca054006bc186fc606d01736f83a31573ad85d19306efcc909b14fa96a883d518913d9eb1d44d61c1a055034699d156e444032b04417d68bfaa9067ba6d4cc0580a1af7ac)
 
-> If you woud like beta access to this Alexa skill on your own Alexa device, please send a message to me at Darude#8096 on Discord or email me at andrew.w.chen.24@dartmouth.edu with the email address you would like me to send the beta access link to.
+If the link above does not work or is expired, please send a message to me at Darude#8096 on Discord or email me at andrew.w.chen.24@dartmouth.edu with the email address you would like me to send the beta access link to.
 
 ## Features + Sample Questions
 
