@@ -55,4 +55,4 @@ https://www.dropbox.com/sh/f2a6pqliwj585io/AACClY8XKdAF0APrqSLfLlMZa?dl=0
 ## Known Issues:
 * handling unaired shows and null values for startDate, endDate, length, etc
 * getting user-specific AniList data
-* database query limits
+* API rate-limit causing skill usage timeout period
