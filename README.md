@@ -2,7 +2,7 @@
 
 ![Image](https://i.imgur.com/xvZIaan.png)
 
-An Alexa Skill for reminders about currently airing anime on your https://anilist.co watching list. Airing-Anime is made using the Anilist API, the Alexa SDK, and the anilist-node API wrapper.
+An Alexa Skill for reminders about currently airing anime on your https://anilist.co watching list. Airing-Anime is made using the Anilist API, the Alexa SDK, and the anilist-node API wrapper. It is hosted using Amazon AWS Lambda.
 
 >currently configured for one specific Anilist account: https://anilist.co/user/airinganime/animelist
 >All commands relating to the user's own list of currently airing anime will pull data from this specific example list
