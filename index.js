@@ -151,8 +151,8 @@ async function searchAnime(name) { // uses a name to return null or an AnimeEntr
     return value;
 }
 
-function checkAnimeAired(anime) {// uses AnimeEntry value to return whether or not the first episode has occurred yet
-    if (anime.endDate <= new Date()) {
+function checkAnimeAired(date) {// uses AnimeEntry value to return whether or not the first episode has occurred yet
+    if (date <= new Date()) {
         return true;
     } else {
         return false;
@@ -160,13 +160,17 @@ function checkAnimeAired(anime) {// uses AnimeEntry value to return whether or n
 
 }
 
-function checkAnimeEnded(anime) {// uses AnimeEntry value to return whether or not the last episode has occurred yet
-    if (anime.startDate <= new Date()) {
+function checkAnimeEnded(date) {// uses AnimeEntry value to return whether or not the last episode has occurred yet
+    if (date <= new Date()) {
         return true;
     } else {
         return false;
     }
 
+}
+
+function convertAnilistDate(anilistDate) {
+    return new Date(`${anilistDate.month}-${anilistDate.day}-${anilistDate.year}`);
 }
 
 // ALEXA REQIEST HANDLERS - RESPOND TO SPECIFIC VOICE COMMANDS
@@ -256,14 +260,16 @@ const GetAnimeAirDateIntentHandler = {
         let anime = await searchAnime(name);
         let speakOutput;
         if (anime != null) {
-            past = checkAnimeAired(anime);
+            startDate = convertAnilistDate(anime.startDate);
+            past = checkAnimeAired(startDate);
             let tenseVerb;
             if (past) {
                 tenseVerb = "aired";
             } else {
                 tenseVerb = "airs";
             }
-            speakOutput = (`${anime.title.english} ${tenseVerb} ${anime.season} ${anime.year} on ${stringifyDate(anime.startDate)}.`);
+    
+            speakOutput = (`${anime.title.english} ${tenseVerb} ${anime.season} ${anime.startDate.year} on ${stringifyDate(startDate)}.`);
         } else {
             speakOutput = ("Unable to find an anime called " + name);
         }
@@ -288,16 +294,18 @@ const GetAnimeRatingIntentHandler = {
         let anime = await searchAnime(name);
         let speakOutput;
         if (anime != null) {
-            speakOutput = (`${anime.title.english} has an average score of ${anime.meanScore} out of one hundred percent.`);
+            speakOutput = (`According to Anilist, ${anime.title.english} has an average score of ${anime.meanScore} out of one hundred.`);
             for (var i = 0, size = anime.rankings.length; i < size ; i++){
-                let ranking = rankings[r];
-                let typeVerb;
-                if (ranking.type === "RATED") {
-                    typeVerb = "highest"
-                } else { // type === "POPULAR"
-                    typeVerb = "most"
+                let ranking = anime.rankings[i];
+                let seasonDesc = ""
+                if (ranking.season != null) {
+                    seasonDesc = " for " + ranking.season
                 }
-                speakOutput += (` It is number ${ranking.rank} ${typeVerb} ${ranking.type} in ${ranking.context} for ${ranking.season} ${ranking.year}.`);
+                let yearDesc = ""
+                if (ranking.year != null) {
+                    yearDesc = " in " + ranking.year
+                }
+                speakOutput += (` It is number ${ranking.rank} ${ranking.context}${seasonDesc}${yearDesc}.`);
             }
         } else {
             speakOutput = ("Unable to find an anime called " + name);
@@ -323,7 +331,7 @@ const GetAnimeGenresIntentHandler = {
         let anime = await searchAnime(name);
         let speakOutput;
         if (anime != null) {
-            past = checkAnimeAired(anime);
+            past = checkAnimeAired(convertAnilistDate(anime.startDate));
             let tenseVerb;
             if (past) {
                 tenseVerb = "has";
@@ -331,9 +339,9 @@ const GetAnimeGenresIntentHandler = {
                 tenseVerb = "will have";
             }
             if (anime.genres.length === 0) {
-                speakOutput = (`${anime.title.english} ${tenseVerb} no genres`);
+                speakOutput = (`${anime.title.english} ${tenseVerb} no genres.`);
             } else {
-                speakOutput = (`${anime.title.english} ${tenseVerb} the genres `);
+                speakOutput = (`${anime.title.english} ${tenseVerb} the genres`);
                 for (var i = 0, size = anime.genres.length; i < size ; i++){
                     speakOutput += (` ${anime.genres[i]},`)
                 }
@@ -362,8 +370,8 @@ const GetAnimeStudiosIntentHandler = {
         let anime = await searchAnime(name);
         let speakOutput;
         if (anime != null) {
-            ended = checkAnimeEnded(anime);
-            aired = checkAnimeEnded(anime);
+            ended = checkAnimeEnded(convertAnilistDate(anime.endDate));
+            aired = checkAnimeAired(convertAnilistDate(anime.startDate));
             let tenseVerb;
             if (!ended && !aired) {
                 tenseVerb = "will be";
@@ -372,7 +380,7 @@ const GetAnimeStudiosIntentHandler = {
             } else {
                 tenseVerb = "is";
             }
-
+    
             if (anime.studios.length === 0) {
                 speakOutput = (`${anime.title.english} ${tenseVerb} by no studios`);
             } else {
@@ -389,21 +397,22 @@ const GetAnimeStudiosIntentHandler = {
                 }
                 
                 if (animationStudios.length != 0) {
-                    speakOutput = (`is animated by `);
+                    speakOutput += (`animated by `);
                     for (var i = 0, size = animationStudios.length; i < size ; i++){
                         speakOutput += (`${animationStudios[i].name}, `)
                     }
-                } else {
-                    speakOutput += "and "
                 }
                 if (otherStudios.length != 0) {
-                    speakOutput = (`is made by `);
+                    if (animationStudios.length != 0) {
+                        speakOutput += "and "
+                    }
+                    speakOutput += (`made by `);
                     for (var i = 0, size = otherStudios.length; i < size ; i++){
                         speakOutput += (`${otherStudios[i].name}, `)
                     }
                 } 
             }
-
+    
         } else {
             speakOutput = ("Unable to find an anime called " + name);
         }
