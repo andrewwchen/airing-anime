@@ -4,7 +4,8 @@
 
 An Alexa Skill for reminders about currently airing anime on your https://anilist.co watching list. Airing-Anime is made using the Anilist API, the Alexa SDK, and the anilist-node API wrapper.
 
->currently configured for one specific Anilist account
+>currently configured for one specific Anilist account: https://anilist.co/user/airinganime/animelist
+>All commands relating to the user's own list of currently airing anime will pull data from this specific example list
 
 *For the DALI Lab API challenge (for 21S)*
 
