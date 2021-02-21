@@ -3,6 +3,8 @@ const AmazonDateParser = require('amazon-date-parser');
 const anilist = require('anilist-node');
 const Anilist = new anilist(/*settings.token*/);
 
+
+//HELPER FUNCTIONS
 function getAnimeList(nameOrID) {
     return Anilist.lists.anime(nameOrID)
 }
@@ -137,7 +139,37 @@ async function speakifyAiringAnimeOnDate(date) {
     return speakOutput;
 }
 
+async function searchAnime(name) { // uses a name to return null or an AnimeEntry value
+    let animeSearchResults = await Anilist.search("anime", name, 1, 1);
+    let value;
+    if (animeSearchResults.media.length === 1) {
+        let anime = await getAnime(animeSearchResults.media[0].id);
+        if (!anime.isAdult) {
+            value = anime;
+        }
+    }
+    return value;
+}
 
+function checkAnimeAired(anime) {// uses AnimeEntry value to return whether or not the first episode has occurred yet
+    if (anime.endDate <= new Date()) {
+        return true;
+    } else {
+        return false;
+    }
+
+}
+
+function checkAnimeEnded(anime) {// uses AnimeEntry value to return whether or not the last episode has occurred yet
+    if (anime.startDate <= new Date()) {
+        return true;
+    } else {
+        return false;
+    }
+
+}
+
+// ALEXA REQIEST HANDLERS - RESPOND TO SPECIFIC VOICE COMMANDS
 const LaunchRequestHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
@@ -167,7 +199,9 @@ const HelloWorldIntentHandler = {
     }
 };
 
-
+/* *
+ * GetAiringScheduleIntentHandler triggers when a customer asks about "what's airing on {date, day, week, etc}"
+ * */
 const GetAiringScheduleIntentHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
@@ -184,6 +218,202 @@ const GetAiringScheduleIntentHandler = {
     }
 };
 
+/* *
+ * GetAnimeEpisodesIntentHandler triggers when a customer asks about "how many episodes are in {anime}"
+ * */
+const GetAnimeEpisodesIntentHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'GetAnimeEpisodesIntent';
+    },
+    async handle(handlerInput) {
+        const name = handlerInput.requestEnvelope.request.intent.slots.Anime.value;
+        let anime = await searchAnime(name);
+        let speakOutput;
+        if (anime != null) {
+            speakOutput = (anime.title.english + " has " + anime.episodes + " episodes.");
+        } else {
+            speakOutput = ("Unable to find an anime called " + name);
+        }
+        
+        return handlerInput.responseBuilder
+            .speak(speakOutput)
+            //.reprompt('add a reprompt if you want to keep the session open for the user to respond')
+            .getResponse();
+    }
+};
+
+/* *
+ * GetAnimeAirDateIntentHandler triggers when a customer asks about "when {anime} aired"
+ * */
+const GetAnimeAirDateIntentHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'GetAnimeAirDateIntent';
+    },
+    async handle(handlerInput) {
+        const name = handlerInput.requestEnvelope.request.intent.slots.Anime.value;
+        let anime = await searchAnime(name);
+        let speakOutput;
+        if (anime != null) {
+            past = checkAnimeAired(anime);
+            let tenseVerb;
+            if (past) {
+                tenseVerb = "aired";
+            } else {
+                tenseVerb = "airs";
+            }
+            speakOutput = (`${anime.title.english} ${tenseVerb} ${anime.season} ${anime.year} on ${stringifyDate(anime.startDate)}.`);
+        } else {
+            speakOutput = ("Unable to find an anime called " + name);
+        }
+        
+        return handlerInput.responseBuilder
+            .speak(speakOutput)
+            //.reprompt('add a reprompt if you want to keep the session open for the user to respond')
+            .getResponse();
+    }
+};
+
+/* *
+ * GetAnimeRatingIntentHandler triggers when a customer asks about "what {anime}'s rating"
+ * */
+const GetAnimeRatingIntentHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'GetAnimeRatingIntent';
+    },
+    async handle(handlerInput) {
+        const name = handlerInput.requestEnvelope.request.intent.slots.Anime.value;
+        let anime = await searchAnime(name);
+        let speakOutput;
+        if (anime != null) {
+            speakOutput = (`${anime.title.english} has an average score of ${anime.meanScore} out of one hundred percent.`);
+            for (var i = 0, size = anime.rankings.length; i < size ; i++){
+                let ranking = rankings[r];
+                let typeVerb;
+                if (ranking.type === "RATED") {
+                    typeVerb = "highest"
+                } else { // type === "POPULAR"
+                    typeVerb = "most"
+                }
+                speakOutput += (` It is number ${ranking.rank} ${typeVerb} ${ranking.type} in ${ranking.context} for ${ranking.season} ${ranking.year}.`);
+            }
+        } else {
+            speakOutput = ("Unable to find an anime called " + name);
+        }
+        
+        return handlerInput.responseBuilder
+            .speak(speakOutput)
+            //.reprompt('add a reprompt if you want to keep the session open for the user to respond')
+            .getResponse();
+    }
+};
+
+/* *
+ * GetAnimeGenresIntentHandler triggers when a customer asks about "what are {anime}'s genres"
+ * */
+const GetAnimeGenresIntentHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'GetAnimeGenresIntent';
+    },
+    async handle(handlerInput) {
+        const name = handlerInput.requestEnvelope.request.intent.slots.Anime.value;
+        let anime = await searchAnime(name);
+        let speakOutput;
+        if (anime != null) {
+            past = checkAnimeAired(anime);
+            let tenseVerb;
+            if (past) {
+                tenseVerb = "has";
+            } else {
+                tenseVerb = "will have";
+            }
+            if (anime.genres.length === 0) {
+                speakOutput = (`${anime.title.english} ${tenseVerb} no genres`);
+            } else {
+                speakOutput = (`${anime.title.english} ${tenseVerb} the genres `);
+                for (var i = 0, size = anime.genres.length; i < size ; i++){
+                    speakOutput += (` ${anime.genres[i]},`)
+                }
+            }
+        } else {
+            speakOutput = ("Unable to find an anime called " + name);
+        }
+        
+        return handlerInput.responseBuilder
+            .speak(speakOutput)
+            //.reprompt('add a reprompt if you want to keep the session open for the user to respond')
+            .getResponse();
+    }
+};
+
+/* *
+ * GetAnimeStudiosIntentHandler triggers when a customer asks about "episodes in {anime}"
+ * */
+const GetAnimeStudiosIntentHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'GetAnimeStudiosIntent';
+    },
+    async handle(handlerInput) {
+        const name = handlerInput.requestEnvelope.request.intent.slots.Anime.value;
+        let anime = await searchAnime(name);
+        let speakOutput;
+        if (anime != null) {
+            ended = checkAnimeEnded(anime);
+            aired = checkAnimeEnded(anime);
+            let tenseVerb;
+            if (!ended && !aired) {
+                tenseVerb = "will be";
+            } else if (aired && ended) {
+                tenseVerb = "was";
+            } else {
+                tenseVerb = "is";
+            }
+
+            if (anime.studios.length === 0) {
+                speakOutput = (`${anime.title.english} ${tenseVerb} by no studios`);
+            } else {
+                speakOutput = (`${anime.title.english} ${tenseVerb} `);
+                animationStudios = [];
+                otherStudios = [];
+                for (var i = 0, size = anime.studios.length; i < size ; i++){
+                    let studio = anime.studios[i];
+                    if (studio.isAnimationStudio) {
+                        animationStudios.push(studio)
+                    } else {
+                        otherStudios.push(studio)
+                    }
+                }
+                
+                if (animationStudios.length != 0) {
+                    speakOutput = (`is animated by `);
+                    for (var i = 0, size = animationStudios.length; i < size ; i++){
+                        speakOutput += (`${animationStudios[i].name}, `)
+                    }
+                } else {
+                    speakOutput += "and "
+                }
+                if (otherStudios.length != 0) {
+                    speakOutput = (`is made by `);
+                    for (var i = 0, size = otherStudios.length; i < size ; i++){
+                        speakOutput += (`${otherStudios[i].name}, `)
+                    }
+                } 
+            }
+
+        } else {
+            speakOutput = ("Unable to find an anime called " + name);
+        }
+        
+        return handlerInput.responseBuilder
+            .speak(speakOutput)
+            //.reprompt('add a reprompt if you want to keep the session open for the user to respond')
+            .getResponse();
+    }
+};
 
 const HelpIntentHandler = {
     canHandle(handlerInput) {
@@ -297,6 +527,12 @@ exports.handler = Alexa.SkillBuilders.custom()
         LaunchRequestHandler,
         HelloWorldIntentHandler,
         GetAiringScheduleIntentHandler,
+        GetAnimeEpisodesIntentHandler,
+        //GetAiringScheduleOnWeekdayIntentHandler,
+        GetAnimeAirDateIntentHandler,
+        GetAnimeRatingIntentHandler,
+        GetAnimeGenresIntentHandler,
+        GetAnimeStudiosIntentHandler,
         HelpIntentHandler,
         CancelAndStopIntentHandler,
         FallbackIntentHandler,
