@@ -56,3 +56,5 @@ https://www.dropbox.com/sh/f2a6pqliwj585io/AACClY8XKdAF0APrqSLfLlMZa?dl=0
 * handling unaired shows and null values for startDate, endDate, length, etc
 * getting user-specific AniList data
 * API rate-limit causing skill usage timeout period
+
+>Alexa will reply with `Sorry, I don't know about that. Please try again.` when the databese rate-limit timeout is active. If you suspect a timeout has occurred, verify that the skill itself is functioning by asking `Alexa, ask Airing Anime Hello`.
